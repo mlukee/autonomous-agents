@@ -19,6 +19,7 @@ const buttons = {
 // Elementi uporabniškega vmesnika - drsniki
 const sliders = {
   agents: document.getElementById("agents-slider"),
+  flocks: document.getElementById("flocks-slider"),
   speed: document.getElementById("speed-slider"),
   separation: document.getElementById("separation-slider"),
   alignment: document.getElementById("alignment-slider"),
@@ -28,6 +29,7 @@ const sliders = {
 // Elementi uporabniškega vmesnika - prikazi vrednosti drsnikov
 const sliderValues = {
   agents: document.getElementById("agents-value"),
+  flocks: document.getElementById("flocks-value"),
   speed: document.getElementById("speed-value"),
   separation: document.getElementById("separation-value"),
   alignment: document.getElementById("alignment-value"),
@@ -37,6 +39,7 @@ const sliderValues = {
 // Parametri simulacije
 const params = {
   agentCount: parseInt(sliders.agents.value),
+  flockCount: parseInt(sliders.flocks.value),
   maxSpeed: parseFloat(sliders.speed.value),
   maxForce: 0.2,
   separationWeight: parseFloat(sliders.separation.value),
@@ -74,85 +77,40 @@ const targetPos = {
 let agents = [];
 let obstacles = [];
 
+let flocks = [];
+const flockColors = ["#3498db", "#e74c3c", "#2ecc71", "#f39c12", "#9b59b6"];
+
 // Funkcija za posodabljanje prikaza
 function update() {
-  // console.log("Updating...");
-  // console.log("Agent count:", agents.length);
-  // console.log(mode);
-
-  // Počisti platno
+  // Clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Nariši ovire, če so vključene
+  // Draw obstacles
   if (mode.obstacles) {
     obstacles.forEach((obstacle) => obstacle.draw());
   }
 
-  // Posodobi in nariši vse agente
-  agents.forEach((agent) => {
-    if (mode.obstacles && obstacles.length > 0) {
-      const avoidance = agent.avoidObstacles(obstacles);
-      agent.applyForce(avoidance);
-    }
-    if (mode.seekArrive && targetPos.active) {
-      // Uporabi ustrezna vedenja glede na način delovanja
-      const seek = agent.seek(targetPos);
-      agent.applyForce(seek);
-    }
-
-    if (mode.randomWalk) {
-      const wander = agent.wander();
-      agent.applyForce(wander);
-    }
-
-    if (mode.bounded) {
-      const boundary = agent.boundaries();
-      agent.applyForce(boundary);
-    } else {
-      agent.checkEdges();
-    }
-
-    if (mode.separation && !mode.flocking) {
-      const separation = agent.separation(agents).mult(params.separationWeight);
-      agent.applyForce(separation);
-    }
-
-    if (mode.alignment && !mode.flocking) {
-      const alignment = agent.alignment(agents).mult(params.alignmentWeight);
-      agent.applyForce(alignment);
-    }
-
-    if (mode.cohesion && !mode.flocking) {
-      const cohesion = agent.cohesion(agents).mult(params.cohesionWeight);
-      agent.applyForce(cohesion);
-    }
-
-    if (mode.flocking) {
-      agent.flock(agents);
-    }
-
-    // Posodobi fiziko agenta
-    agent.update();
-
-    // Nariši agenta
-    agent.draw();
+  // Update and draw all flocks
+  flocks.forEach((flock) => {
+    flock.update(agents, mode.obstacles ? obstacles : []);
+    flock.draw();
   });
 
-  // Nariši tarčo, če je aktivna
+  // Draw target if active
   if (targetPos.active) {
     ctx.beginPath();
     ctx.arc(targetPos.x, targetPos.y, 10, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
     ctx.fill();
 
-    // Nariši krog za območje pristanek
+    // Draw circle for arrival radius
     ctx.beginPath();
     ctx.arc(targetPos.x, targetPos.y, params.arriveRadius, 0, Math.PI * 2);
     ctx.strokeStyle = "rgba(255, 0, 0, 0.2)";
     ctx.stroke();
   }
 
-  // Nadaljuj animacijo
+  // Continue animation
   requestAnimationFrame(update);
 }
 
@@ -160,7 +118,8 @@ function update() {
 function init() {
   resizeCanvas();
   createObstacles();
-  createAgents();
+  createFlocks();
+  // createAgents();
   initSliders();
   initButtons();
   initDraggableTarget();

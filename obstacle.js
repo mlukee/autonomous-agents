@@ -15,9 +15,19 @@ class Obstacle {
   draw() {
     ctx.beginPath();
     ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(50, 50, 50, 0.7)";
+
+    // Change style when hovered or dragging
+    if (this.isHovered || this.isDragging) {
+      ctx.fillStyle = "rgba(80, 80, 80, 0.8)";
+      ctx.strokeStyle = "#ff3333";
+      ctx.lineWidth = 2;
+    } else {
+      ctx.fillStyle = "rgba(50, 50, 50, 0.7)";
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 1;
+    }
+
     ctx.fill();
-    ctx.strokeStyle = "#333";
     ctx.stroke();
   }
 }

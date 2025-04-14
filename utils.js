@@ -7,6 +7,40 @@ function map(value, start1, stop1, start2, stop2) {
   return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
 }
 
+// Funkcija za ustvarjanje jate agentov
+function createFlocks() {
+  flocks = [];
+
+  // Calculate agents per flock - ceil to ensure we have at least one agent per flock
+  const agentsPerFlock = Math.ceil(params.agentCount / params.flockCount);
+  let agentsCreated = 0;
+
+  // Create flocks
+  for (let i = 0; i < params.flockCount; i++) {
+    // Place flocks in different areas
+    const x = (canvas.width * (i + 1)) / (params.flockCount + 1);
+    const y = canvas.height / 2;
+    const color = flockColors[i % flockColors.length];
+
+    // For the last flock, adjust count to not exceed total agent count
+    const agentsForThisFlock =
+      i === params.flockCount - 1
+        ? Math.min(params.agentCount - agentsCreated, agentsPerFlock)
+        : Math.min(agentsPerFlock, params.agentCount - agentsCreated);
+
+    if (agentsForThisFlock <= 0) break;
+
+    flocks.push(new Flock(i, color, agentsForThisFlock, x, y));
+    agentsCreated += agentsForThisFlock;
+
+    // If we've created all agents, stop
+    if (agentsCreated >= params.agentCount) break;
+  }
+
+  // Combine all agents into the agents array for compatibility
+  agents = flocks.flatMap((flock) => flock.agents);
+}
+
 // Funkcija za ustvarjanje agentov
 function createAgents() {
   agents = [];
@@ -19,6 +53,7 @@ function createAgents() {
 
 function initObstacleEvents() {
   let draggedObstacle = null;
+  let hoveredObstacle = null;
 
   canvas.addEventListener("mousedown", function (e) {
     const rect = canvas.getBoundingClientRect();
@@ -27,15 +62,24 @@ function initObstacleEvents() {
     const mousePos = new Vector(mouseX, mouseY);
 
     // Check if we clicked on any obstacle
-    for (let obstacle of obstacles) {
+    for (let i = 0; i < obstacles.length; i++) {
+      const obstacle = obstacles[i];
       if (obstacle.contains(mousePos)) {
+        // Right click to delete obstacle
+        if (e.button === 2) {
+          obstacles.splice(i, 1);
+          e.preventDefault();
+          return;
+        }
+
+        // Left click to drag
         draggedObstacle = obstacle;
         obstacle.isDragging = true;
         break;
       }
     }
 
-    // If no obstacle was clicked and we're in obstacles mode, create a new one
+    // If no obstacle was clicked and we're in obstacles mode with Alt key, create a new one
     if (!draggedObstacle && e.altKey) {
       const newObstacle = new Obstacle(mouseX, mouseY, params.minObstacleSize);
       obstacles.push(newObstacle);
@@ -45,10 +89,33 @@ function initObstacleEvents() {
   });
 
   canvas.addEventListener("mousemove", function (e) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const mousePos = new Vector(mouseX, mouseY);
+
+    // Handle dragging
     if (draggedObstacle) {
-      const rect = canvas.getBoundingClientRect();
-      draggedObstacle.position.x = e.clientX - rect.left;
-      draggedObstacle.position.y = e.clientY - rect.top;
+      draggedObstacle.position.x = mouseX;
+      draggedObstacle.position.y = mouseY;
+    }
+
+    // Update hovered obstacle for delete key functionality
+    hoveredObstacle = null;
+    for (let obstacle of obstacles) {
+      // Reset hover state for all obstacles
+      obstacle.isHovered = false;
+
+      if (obstacle.contains(mousePos)) {
+        hoveredObstacle = obstacle;
+        obstacle.isHovered = true;
+        canvas.style.cursor = "pointer";
+        break;
+      }
+    }
+
+    if (!hoveredObstacle) {
+      canvas.style.cursor = "default";
     }
   });
 
@@ -56,6 +123,17 @@ function initObstacleEvents() {
     if (draggedObstacle) {
       draggedObstacle.isDragging = false;
       draggedObstacle = null;
+    }
+  });
+
+  // Add Delete key functionality
+  document.addEventListener("keydown", function (e) {
+    if ((e.key === "Delete" || e.key === "Backspace") && hoveredObstacle) {
+      const index = obstacles.indexOf(hoveredObstacle);
+      if (index !== -1) {
+        obstacles.splice(index, 1);
+        hoveredObstacle = null;
+      }
     }
   });
 
@@ -75,6 +153,11 @@ function initObstacleEvents() {
         break;
       }
     }
+  });
+
+  // Prevent context menu from appearing on right-click
+  canvas.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
   });
 }
 
@@ -98,7 +181,14 @@ function initSliders() {
     const value = parseInt(this.value);
     params.agentCount = value;
     sliderValues.agents.textContent = value;
-    createAgents();
+    createFlocks();
+  });
+
+  sliders.flocks.addEventListener("input", function () {
+    const value = parseInt(this.value);
+    params.flockCount = value;
+    sliderValues.flocks.textContent = value;
+    createFlocks();
   });
 
   sliders.speed.addEventListener("input", function () {
@@ -221,23 +311,31 @@ function initButtons() {
 
     // Set bounded mode to true (default)
     mode.bounded = true;
+    mode.obstacles = true;
 
     // Reset button states
     Object.values(buttons).forEach((button) => {
       button.classList.remove("active");
     });
     buttons.bounded.classList.add("active");
+    buttons.obstacles.classList.add("active");
 
     // Reset target
     targetPos.active = false;
     target.style.display = "none";
 
     // Reset agent positions
-    createAgents();
+    createObstacles();
+    createFlocks();
   });
 
   // Set bounded as active by default
   buttons.bounded.classList.add("active");
+}
+
+function resetSimulation() {
+  createObstacles();
+  createFlocks();
 }
 
 // Funkcija za inicializacijo vlečljive tarče

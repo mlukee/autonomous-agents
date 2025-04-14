@@ -218,7 +218,7 @@ class Agent {
     ctx.lineTo(-this.size, this.size);
     ctx.lineTo(-this.size, -this.size);
     ctx.closePath();
-    ctx.fillStyle = "#3498db";
+    ctx.fillStyle = this.color || "#3498db";
     ctx.fill();
 
     ctx.restore();
