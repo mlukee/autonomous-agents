@@ -7,6 +7,33 @@ function map(value, start1, stop1, start2, stop2) {
   return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
 }
 
+function isInFieldOfView(
+  agentPosition,
+  agentVelocity,
+  targetPosition,
+  fieldOfView
+) {
+  // Get direction to target
+  const toTarget = Vector.sub(targetPosition, agentPosition);
+
+  // Skip if the target is at the same position (would cause NaN in normalization)
+  if (toTarget.mag() === 0) return false;
+
+  // Normalize both vectors
+  let targetDirection = toTarget.normalize().copy();
+  const agentDirection = agentVelocity.copy().normalize();
+
+  // Calculate dot product
+  const dotProduct =
+    targetDirection.x * agentDirection.x + targetDirection.y * agentDirection.y;
+
+  // Get angle between the two vectors
+  const angle = Math.acos(Math.min(Math.max(dotProduct, -1), 1));
+
+  // Return true if angle is less than half the field of view
+  return angle <= fieldOfView / 2;
+}
+
 // Funkcija za ustvarjanje jate agentov
 function createFlocks() {
   flocks = [];
@@ -177,6 +204,17 @@ function createObstacles() {
 
 // Funkcija za inicializacijo drsnikov
 function initSliders() {
+  sliders.fov.addEventListener("input", function () {
+    const value = parseInt(this.value);
+    params.fieldOfView = (value * Math.PI) / 180; // Convert degrees to radians
+    sliderValues.fov.textContent = value + "°";
+
+    // Update all agents
+    agents.forEach((agent) => {
+      agent.fieldOfView = params.fieldOfView;
+    });
+  });
+
   sliders.agents.addEventListener("input", function () {
     const value = parseInt(this.value);
     params.agentCount = value;
@@ -221,6 +259,11 @@ function initSliders() {
 
 // Funkcija za inicializacijo gumbov
 function initButtons() {
+  buttons.showFOV.addEventListener("click", function () {
+    params.showFieldOfView = !params.showFieldOfView;
+    this.classList.toggle("active");
+  });
+
   buttons.obstacles.addEventListener("click", function () {
     mode.obstacles = !mode.obstacles;
     this.classList.toggle("active");

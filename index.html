@@ -12,6 +12,7 @@
       <div id="target" class="target"></div>
       <canvas id="canvas"></canvas>
       <div class="controls">
+        <button id="show-fov">Pokaži vidni kot</button>
         <button id="obstacles">Ovire</button>
         <button id="seek-arrive">Išči in pristani</button>
         <button id="random-walk">Naključna hoja</button>
@@ -23,6 +24,19 @@
         <button id="reset">Ponastavi</button>
       </div>
       <div class="slider-container">
+        <div class="slider-group">
+          <div class="slider-label">
+            Vidni kot: <span id="fov-value">145°</span>
+          </div>
+          <input
+            type="range"
+            id="fov-slider"
+            min="30"
+            max="360"
+            value="145"
+            step="1"
+          />
+        </div>
         <div class="slider-group">
           <div class="slider-label">
             Število agentov: <span id="agents-value">50</span>
@@ -50,7 +64,7 @@
         </div>
         <div class="slider-group">
           <div class="slider-label">
-            Teža ločitve: <span id="separation-value">1.5</span>
+            Teža ločitve: <span id="separation-value">1.0</span>
           </div>
           <input
             type="range"

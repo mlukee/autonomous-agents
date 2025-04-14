@@ -5,6 +5,7 @@ const target = document.getElementById("target");
 
 // Elementi uporabniškega vmesnika - gumbi
 const buttons = {
+  showFOV: document.getElementById("show-fov"),
   obstacles: document.getElementById("obstacles"),
   seekArrive: document.getElementById("seek-arrive"),
   randomWalk: document.getElementById("random-walk"),
@@ -18,6 +19,7 @@ const buttons = {
 
 // Elementi uporabniškega vmesnika - drsniki
 const sliders = {
+  fov: document.getElementById("fov-slider"),
   agents: document.getElementById("agents-slider"),
   flocks: document.getElementById("flocks-slider"),
   speed: document.getElementById("speed-slider"),
@@ -28,6 +30,7 @@ const sliders = {
 
 // Elementi uporabniškega vmesnika - prikazi vrednosti drsnikov
 const sliderValues = {
+  fov: document.getElementById("fov-value"),
   agents: document.getElementById("agents-value"),
   flocks: document.getElementById("flocks-value"),
   speed: document.getElementById("speed-value"),
@@ -45,13 +48,15 @@ const params = {
   separationWeight: parseFloat(sliders.separation.value),
   alignmentWeight: parseFloat(sliders.alignment.value),
   cohesionWeight: parseFloat(sliders.cohesion.value),
-  perceptionRadius: 50,
+  perceptionRadius: 60,
   separationRadius: 50,
-  avoidanceRadius: 30,
+  avoidanceRadius: 50,
   arriveRadius: 100,
   obstacleCount: 3,
   minObstacleSize: 20,
   maxObstacleSize: 50,
+  fieldOfView: Math.PI * 0.8, // 144 degrees
+  showFieldOfView: false,
 };
 
 // Trenutni načini delovanja

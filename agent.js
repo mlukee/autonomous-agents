@@ -13,12 +13,20 @@ class Agent {
     this.wanderRadius = 25;
     this.wanderDistance = 80;
     this.wanderChange = 0.3;
+    this.fieldOfView = Math.PI * 0.8; // Field of view ~145 degrees
   }
 
   update() {
     this.position.add(this.velocity);
     this.velocity.add(this.acceleration);
     this.velocity.limit(this.maxSpeed);
+    // // Add minimum speed constraint
+    // const speed = this.velocity.mag();
+    // if (speed < this.maxSpeed * 0.5) {
+    //   this.velocity.setMag(this.maxSpeed * 0.5);
+    // }
+
+    // this.acceleration.mult(0);
     this.acceleration.mult(0);
   }
 
@@ -111,6 +119,18 @@ class Agent {
     for (let other of agents) {
       let d = Vector.dist(this.position, other.position);
       if (other !== this && d < params.perceptionRadius) {
+        // if (
+        //   !isInFieldOfView(
+        //     this.position,
+        //     this.velocity,
+        //     other.position,
+        //     this.fieldOfView
+        //   )
+        // ) {
+        //   console.log("Not in field of view");
+        //   continue; // Skip if not in field of view
+        // }
+
         let diff = Vector.sub(this.position, other.position);
         diff.div(d);
         steering.add(diff);
@@ -134,6 +154,16 @@ class Agent {
     for (let other of agents) {
       let d = Vector.dist(this.position, other.position);
       if (other !== this && d < params.perceptionRadius) {
+        // if (
+        //   !isInFieldOfView(
+        //     this.position,
+        //     this.velocity,
+        //     other.position,
+        //     this.fieldOfView
+        //   )
+        // ) {
+        //   continue; // Skip if not in field of view
+        // }
         steering.add(other.velocity);
         total++;
       }
@@ -153,6 +183,16 @@ class Agent {
     for (let other of agents) {
       let d = Vector.dist(this.position, other.position);
       if (other !== this && d < params.perceptionRadius) {
+        // if (
+        //   !isInFieldOfView(
+        //     this.position,
+        //     this.velocity,
+        //     other.position,
+        //     this.fieldOfView
+        //   )
+        // ) {
+        //   continue; // Skip if not in field of view
+        // }
         steering.add(other.position);
         total++;
       }
@@ -192,6 +232,19 @@ class Agent {
       const avoidanceRange = obstacle.radius + params.avoidanceRadius;
 
       if (dist < avoidanceRange) {
+        // if (
+        //   !isInFieldOfView(
+        //     this.position,
+        //     this.velocity,
+        //     obstacle.position,
+        //     this.fieldOfView
+        //   )
+        // ) {
+        //   // let peripheralForce = Vector.sub(this.position, obstacle.position);
+        //   // peripheralForce.mult(1); // Reduced force for peripheral vision
+        //   // steering.add(peripheralForce);
+        //   continue; // Skip the main avoidance code for this obstacle
+        // }
         // Calculate heading toward obstacle
         let toObstacle = Vector.sub(obstacle.position, this.position);
 
@@ -211,6 +264,24 @@ class Agent {
     ctx.save();
     ctx.translate(this.position.x, this.position.y);
     ctx.rotate(Math.atan2(this.velocity.y, this.velocity.x));
+
+    // Optionally draw field of view
+    if (params.showFieldOfView) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(
+        0,
+        0,
+        params.perceptionRadius,
+        -this.fieldOfView / 2,
+        this.fieldOfView / 2
+      );
+      ctx.closePath();
+      ctx.fillStyle = "rgba(255, 255, 100, 0.5)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 100, 0.5)";
+      ctx.stroke();
+    }
 
     // Draw triangle for agent
     ctx.beginPath();
