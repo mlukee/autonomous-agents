@@ -17,6 +17,81 @@ function createAgents() {
   }
 }
 
+function initObstacleEvents() {
+  let draggedObstacle = null;
+
+  canvas.addEventListener("mousedown", function (e) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const mousePos = new Vector(mouseX, mouseY);
+
+    // Check if we clicked on any obstacle
+    for (let obstacle of obstacles) {
+      if (obstacle.contains(mousePos)) {
+        draggedObstacle = obstacle;
+        obstacle.isDragging = true;
+        break;
+      }
+    }
+
+    // If no obstacle was clicked and we're in obstacles mode, create a new one
+    if (!draggedObstacle && e.altKey) {
+      const newObstacle = new Obstacle(mouseX, mouseY, params.minObstacleSize);
+      obstacles.push(newObstacle);
+      draggedObstacle = newObstacle;
+      newObstacle.isDragging = true;
+    }
+  });
+
+  canvas.addEventListener("mousemove", function (e) {
+    if (draggedObstacle) {
+      const rect = canvas.getBoundingClientRect();
+      draggedObstacle.position.x = e.clientX - rect.left;
+      draggedObstacle.position.y = e.clientY - rect.top;
+    }
+  });
+
+  canvas.addEventListener("mouseup", function () {
+    if (draggedObstacle) {
+      draggedObstacle.isDragging = false;
+      draggedObstacle = null;
+    }
+  });
+
+  // Add mouse wheel to resize obstacles
+  canvas.addEventListener("wheel", function (e) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const mousePos = new Vector(mouseX, mouseY);
+
+    for (let obstacle of obstacles) {
+      if (obstacle.contains(mousePos)) {
+        // Adjust size based on wheel direction
+        const delta = e.deltaY > 0 ? -5 : 5;
+        obstacle.radius = Math.max(10, Math.min(100, obstacle.radius + delta));
+        e.preventDefault();
+        break;
+      }
+    }
+  });
+}
+
+function createObstacles() {
+  obstacles = [];
+
+  for (let i = 0; i < params.obstacleCount; i++) {
+    const radius =
+      Math.random() * (params.maxObstacleSize - params.minObstacleSize) +
+      params.minObstacleSize;
+    const x = Math.random() * (canvas.width - 2 * radius) + radius;
+    const y = Math.random() * (canvas.height - 2 * radius) + radius;
+
+    obstacles.push(new Obstacle(x, y, radius));
+  }
+}
+
 // Funkcija za inicializacijo drsnikov
 function initSliders() {
   sliders.agents.addEventListener("input", function () {
@@ -56,6 +131,11 @@ function initSliders() {
 
 // Funkcija za inicializacijo gumbov
 function initButtons() {
+  buttons.obstacles.addEventListener("click", function () {
+    mode.obstacles = !mode.obstacles;
+    this.classList.toggle("active");
+  });
+
   buttons.seekArrive.addEventListener("click", function () {
     mode.seekArrive = !mode.seekArrive;
     this.classList.toggle("active");

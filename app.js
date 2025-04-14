@@ -5,6 +5,7 @@ const target = document.getElementById("target");
 
 // Elementi uporabniškega vmesnika - gumbi
 const buttons = {
+  obstacles: document.getElementById("obstacles"),
   seekArrive: document.getElementById("seek-arrive"),
   randomWalk: document.getElementById("random-walk"),
   bounded: document.getElementById("bounded"),
@@ -45,6 +46,9 @@ const params = {
   separationRadius: 50,
   avoidanceRadius: 30,
   arriveRadius: 100,
+  obstacleCount: 3,
+  minObstacleSize: 20,
+  maxObstacleSize: 50,
 };
 
 // Trenutni načini delovanja
@@ -56,6 +60,7 @@ const mode = {
   alignment: false,
   cohesion: false,
   flocking: false,
+  obstacles: true,
 };
 
 // Pozicija tarče za seek/arrive
@@ -67,6 +72,7 @@ const targetPos = {
 
 // Seznam agentov
 let agents = [];
+let obstacles = [];
 
 // Funkcija za posodabljanje prikaza
 function update() {
@@ -77,10 +83,19 @@ function update() {
   // Počisti platno
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Nariši ovire, če so vključene
+  if (mode.obstacles) {
+    obstacles.forEach((obstacle) => obstacle.draw());
+  }
+
   // Posodobi in nariši vse agente
   agents.forEach((agent) => {
-    // Uporabi ustrezna vedenja glede na način delovanja
+    if (mode.obstacles && obstacles.length > 0) {
+      const avoidance = agent.avoidObstacles(obstacles);
+      agent.applyForce(avoidance);
+    }
     if (mode.seekArrive && targetPos.active) {
+      // Uporabi ustrezna vedenja glede na način delovanja
       const seek = agent.seek(targetPos);
       agent.applyForce(seek);
     }
@@ -144,10 +159,16 @@ function update() {
 // Funkcija za inicializacijo aplikacije
 function init() {
   resizeCanvas();
+  createObstacles();
   createAgents();
   initSliders();
   initButtons();
   initDraggableTarget();
+  initObstacleEvents();
+
+  if (mode.obstacles) {
+    buttons.obstacles.classList.add("active");
+  }
   update();
 }
 

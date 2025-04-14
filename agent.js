@@ -181,6 +181,32 @@ class Agent {
     this.applyForce(separation);
   }
 
+  avoidObstacles(obstacles) {
+    let steering = new Vector(0, 0);
+
+    for (let obstacle of obstacles) {
+      // Calculate distance to obstacle
+      const dist = Vector.dist(this.position, obstacle.position);
+
+      // If we're within the avoidance range (obstacle radius + some buffer)
+      const avoidanceRange = obstacle.radius + params.avoidanceRadius;
+
+      if (dist < avoidanceRange) {
+        // Calculate heading toward obstacle
+        let toObstacle = Vector.sub(obstacle.position, this.position);
+
+        // Stronger avoidance force the closer we are
+        let force = map(dist, 0, avoidanceRange, params.maxForce * 2, 0);
+
+        // Steer away (opposite direction)
+        toObstacle.normalize().mult(-force);
+        steering.add(toObstacle);
+      }
+    }
+
+    return steering;
+  }
+
   draw() {
     ctx.save();
     ctx.translate(this.position.x, this.position.y);
