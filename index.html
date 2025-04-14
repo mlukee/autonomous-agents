@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="sl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulacija avtonomnih likov s krmilnimi vedenji</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Simulacija avtonomnih likov s krmilnimi vedenji</h1>
+      <div id="target" class="target"></div>
+      <canvas id="canvas"></canvas>
+      <div class="controls">
+        <button id="seek-arrive">Išči in pristani</button>
+        <button id="random-walk">Naključna hoja</button>
+        <button id="bounded">Omejeni prostor</button>
+        <button id="separation">Ločitev</button>
+        <button id="alignment">Poravnava</button>
+        <button id="cohesion">Kohezija</button>
+        <button id="flocking">Simulacija jate/roja</button>
+        <button id="reset">Ponastavi</button>
+      </div>
+      <div class="slider-container">
+        <div class="slider-group">
+          <div class="slider-label">
+            Število agentov: <span id="agents-value">50</span>
+          </div>
+          <input type="range" id="agents-slider" min="1" max="200" value="50" />
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            Hitrost: <span id="speed-value">2</span>
+          </div>
+          <input
+            type="range"
+            id="speed-slider"
+            min="0.5"
+            max="5"
+            value="2"
+            step="0.1"
+          />
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            Teža ločitve: <span id="separation-value">1.5</span>
+          </div>
+          <input
+            type="range"
+            id="separation-slider"
+            min="0"
+            max="5"
+            value="1.0"
+            step="0.1"
+          />
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            Teža poravnave: <span id="alignment-value">1.0</span>
+          </div>
+          <input
+            type="range"
+            id="alignment-slider"
+            min="0"
+            max="5"
+            value="1.0"
+            step="0.1"
+          />
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            Teža kohezije: <span id="cohesion-value">1.0</span>
+          </div>
+          <input
+            type="range"
+            id="cohesion-slider"
+            min="0"
+            max="5"
+            value="1.0"
+            step="0.1"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Vključitev JavaScript datotek -->
+    <script src="vector.js"></script>
+    <script src="agent.js"></script>
+    <script src="utils.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
