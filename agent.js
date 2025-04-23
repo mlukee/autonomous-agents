@@ -19,14 +19,18 @@ class Agent {
   update() {
     this.position.add(this.velocity);
     this.velocity.add(this.acceleration);
-    this.velocity.limit(this.maxSpeed);
-    // // Add minimum speed constraint
-    // const speed = this.velocity.mag();
-    // if (speed < this.maxSpeed * 0.5) {
-    //   this.velocity.setMag(this.maxSpeed * 0.5);
-    // }
 
-    // this.acceleration.mult(0);
+    if (mode.seekArrive && targetPos.active) {
+      const d = Vector.dist(this.position, targetPos);
+      if (d < params.arriveRadius) {
+        this.velocity.limit(this.maxSpeed);
+      } else {
+        this.velocity.setMag(this.maxSpeed);
+      }
+    } else {
+      this.velocity.setMag(this.maxSpeed);
+    }
+
     this.acceleration.mult(0);
   }
 
@@ -81,7 +85,7 @@ class Agent {
 
   boundaries() {
     let desired = null;
-    const margin = 100;
+    const margin = 150;
 
     if (this.position.x < margin) {
       desired = new Vector(this.maxSpeed, this.velocity.y);
@@ -154,6 +158,7 @@ class Agent {
     for (let other of agents) {
       let d = Vector.dist(this.position, other.position);
       if (other !== this && d < params.perceptionRadius) {
+        // Check if the other agent is within field of view
         // if (
         //   !isInFieldOfView(
         //     this.position,
@@ -252,7 +257,7 @@ class Agent {
         let force = map(dist, 0, avoidanceRange, params.maxForce * 2, 0);
 
         // Steer away (opposite direction)
-        toObstacle.normalize().mult(-force);
+        toObstacle.mult(-force);
         steering.add(toObstacle);
       }
     }

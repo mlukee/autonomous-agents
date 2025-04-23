@@ -20,8 +20,8 @@ function isInFieldOfView(
   if (toTarget.mag() === 0) return false;
 
   // Normalize both vectors
-  let targetDirection = toTarget.normalize().copy();
-  const agentDirection = agentVelocity.copy().normalize();
+  let targetDirection = toTarget.copy();
+  const agentDirection = agentVelocity.copy();
 
   // Calculate dot product
   const dotProduct =
@@ -271,17 +271,20 @@ function initButtons() {
 
   buttons.seekArrive.addEventListener("click", function () {
     mode.seekArrive = !mode.seekArrive;
+    targetPos.active = mode.seekArrive;
     this.classList.toggle("active");
 
     if (mode.seekArrive) {
-      targetPos.active = true;
-      targetPos.x = canvas.width / 2;
-      targetPos.y = canvas.height / 2;
+      const rect = canvas.getBoundingClientRect();
+      targetPos.x = canvas.width / 2 - rect.left;
+      targetPos.y = canvas.height / 2 - rect.top;
+      // targetPos.x = canvas.width / 2;
+      // targetPos.y = canvas.height / 2;
 
       // Show draggable target
       target.style.display = "block";
-      target.style.left = targetPos.x + "px";
-      target.style.top = targetPos.y + "px";
+      target.style.left = `${canvas.width / 2}px`;
+      target.style.top = `${canvas.height / 2}px`;
     } else {
       targetPos.active = false;
       target.style.display = "none";

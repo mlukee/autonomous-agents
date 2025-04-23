@@ -21,6 +21,12 @@ class Flock {
   update(allAgents, obstacles) {
     this.agents.forEach((agent) => {
       // Apply flocking behavior only with agents from the same flock
+      if (mode.bounded) {
+        const boundary = agent.boundaries();
+        agent.applyForce(boundary);
+      } else {
+        agent.checkEdges();
+      }
       if (mode.flocking) {
         const sameFlockAgents = allAgents.filter((a) => a.flockId === this.id);
         agent.flock(sameFlockAgents);
@@ -41,13 +47,6 @@ class Flock {
       if (mode.randomWalk) {
         const wander = agent.wander();
         agent.applyForce(wander);
-      }
-
-      if (mode.bounded) {
-        const boundary = agent.boundaries();
-        agent.applyForce(boundary);
-      } else {
-        agent.checkEdges();
       }
 
       if (mode.separation && !mode.flocking) {
